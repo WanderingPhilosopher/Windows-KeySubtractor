@@ -1,6 +1,7 @@
 # Windows KeySubtractor
 Bitcoin and Altcoins Publickey subtractor
-This is a fork of https://github.com/albertobsd/keysubtracter but for Windows.
+
+This is a fork of  https://github.com/albertobsd/keysubtracter  but for Windows.
 
 Generate multiple but different "copies" of a publickey, Actually Added and substracted publickeys.
 

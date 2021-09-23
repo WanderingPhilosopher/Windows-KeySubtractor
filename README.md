@@ -1,5 +1,6 @@
-# keysubtracter
-Bitcoin and Altcoins Publickey subtracter
+# Windows KeySubtractor
+Bitcoin and Altcoins Publickey subtractor
+This is a fork of https://github.com/albertobsd/keysubtracter but for Windows.
 
 Generate multiple but different "copies" of a publickey, Actually Added and substracted publickeys.
 
@@ -7,7 +8,7 @@ Post: https://bitcointalk.org/index.php?topic=5360656.0
 
 Download, clone this repository:
 
-`git clone https://github.com/albertobsd/keysubtracter.git`
+`git clone https://github.com/WanderingPhilosopher/Windows-KeySubtractor.git`
 
 Compile:
 

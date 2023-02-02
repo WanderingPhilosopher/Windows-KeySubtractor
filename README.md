@@ -13,6 +13,36 @@ Generate multiple but different "copies" of a publickey, Actually Added and subs
 
 Post: https://bitcointalk.org/index.php?topic=5360656.0
 
+Usage:
+-h              Show this help screen.
+-b bits         For the 32 BTC challenge, you can just enter a bit range.
+-f format       Output format <publickey, rmd160, address>. Default: publickey
+-l look         Output <compressed, uncompressed>. Default: compress
+-n number       Number of public keys to generate. This number needs to be even.
+-o file         Output file. If you omit this option, results will be printed on screen.
+-p key          Publickey to be added/subtracted; can be compressed or uncompressed.
+-r A:B          Range A to B; ex: -r 2000000000:3000000000
+-R              Random addition/subtraction publickey instead of sequential.
+-a              Addition only to the public key.
+-s              Subtraction only to the public key.
+NOTE:
+                If you want to add and subtract from public key, use the -s and -a flags at the same time.
+
+-x              Exclude comments; the + and/or - columns. You need the comments if using Random mode.
+NOTE:
+                The + or - comments are telling you what to add or subtract from found key.
+                If you use -s, subtraction only, you need to add + the number to found key,
+                to equal the actual key you are looking for.
+
+Developed by albertobsd, mods made by WanderingPhilosopher
+
+Example batch file:
+```
+WindowsKeySubtractorV2 -p 02ceb6cbbcdbdf5ef7150682150f4ce2c6f4807b349827dcdbdd1f2efa885a2630 -s -n 10 -r 0:400 -o testversion2.txt
+pause
+```
+
+
 Download, clone this repository:
 
 `git clone https://github.com/WanderingPhilosopher/Windows-KeySubtractor.git`

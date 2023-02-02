@@ -21,7 +21,7 @@ email: alberto.bsd@gmail.com
 #include "sha256/sha256.h"
 
 
-const char *version = "0.1.20210918";
+const char *version = "v2.2";
 const char *EC_constant_N = "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364141";
 const char *EC_constant_P = "fffffffffffffffffffffffffffffffffffffffffffffffffffffffefffffc2f";
 const char *EC_constant_Gx = "79be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798";
@@ -41,6 +41,7 @@ void set_range(char *param);
 void generate_straddress(struct Point *publickey,bool compress,char *dst);
 void generate_strrmd160(struct Point *publickey,bool compress,char *dst);
 void generate_strpublickey(struct Point *publickey,bool compress,char *dst);
+double_t calc_perc(uint64_t x, uint64_t max);
 
 char *str_output = NULL;
 
@@ -56,6 +57,7 @@ int FLAG_RANDOM = 0;
 int FLAG_PUBLIC = 0;
 int FLAG_FORMART = 0;
 int FLAG_HIDECOMMENT = 0;
+int FLAG_XPOINTONLY = 0;
 int FLAG_LOOK = 0;
 int FLAG_ADD = 0;
 int FLAG_SUB = 0;
@@ -216,10 +218,13 @@ int main(int argc, char **argv)  {
 	mpz_init_set_ui(TWO,2);
 	mpz_init(target_publickey.x);
 	mpz_init_set_ui(target_publickey.y,0);
-	while ((c = getopt(argc, argv, "hvasxRb:n:o:p:r:f:l:")) != -1) {
+	while ((c = getopt(argc, argv, "hvaszxRb:n:o:p:r:f:l:")) != -1) {
 		switch(c) {
 			case 'x':
 				FLAG_HIDECOMMENT = 1;
+			break;
+			case 'z':
+				FLAG_XPOINTONLY = 1;
 			break;
 			case 'a':
 				FLAG_ADD = 1;
@@ -258,7 +263,7 @@ int main(int argc, char **argv)  {
 				FLAG_RANDOM = 1;
 			break;
 			case 'v':
-				printf("version %s\n",version);
+				printf("Version %s\n",version);
 				exit(0);
 			break;
 			case 'l':
@@ -286,15 +291,19 @@ int main(int argc, char **argv)  {
 			N++;
 		}
 		//M = N /2;
-		if(FLAG_ADD) {
+		if(FLAG_SUB && FLAG_ADD) {
+			M = N / 2;
+		}
+		else if(FLAG_ADD) {
 			M = N;
 		}
-		if(FLAG_SUB) {
+		else if(FLAG_SUB) {
 			M = N;
 		}
 		else {
 			M = N /2;
 		}
+		
 		mpz_sub(diff,max_range,min_range);
 		mpz_init(base_publickey.x);
 		mpz_init(base_publickey.y);
@@ -320,23 +329,41 @@ int main(int argc, char **argv)  {
 					case 0: //Publickey
 					if(FLAG_ADD) {
 						generate_strpublickey(&dst_publickey,FLAG_LOOK == 0,str_publickey);
-						if(FLAG_HIDECOMMENT)	{
+						if(FLAG_HIDECOMMENT && FLAG_XPOINTONLY)	{
+							//fprintf(OUTPUT,"%s\n",str_publickey);
+							gmp_fprintf(OUTPUT, "%0.64Zx\n", dst_publickey.x);
+						}
+						else if(FLAG_XPOINTONLY)	{
+							//fprintf(OUTPUT,"%s\n",str_publickey);
+							gmp_fprintf(OUTPUT, "%0.64Zx # + %Zx\n", dst_publickey.x, base_key);
+						}
+						else if(FLAG_HIDECOMMENT)	{
 							fprintf(OUTPUT,"%s\n",str_publickey);
 						}
 					
 						else	{
-							gmp_fprintf(OUTPUT,"%s # - %Zd\n",str_publickey,base_key);
+							//gmp_fprintf(OUTPUT,"%s # - %Zd\n",str_publickey,base_key);
+							gmp_fprintf(OUTPUT, "%s # - %Zx\n", str_publickey, base_key);
 						}
 					}
 						if(FLAG_SUB) {
 						Point_Addition(&negated_publickey,&target_publickey,&dst_publickey);
 						generate_strpublickey(&dst_publickey,FLAG_LOOK == 0,str_publickey);
-						if(FLAG_HIDECOMMENT)	{
+						if(FLAG_HIDECOMMENT && FLAG_XPOINTONLY)	{
+							//fprintf(OUTPUT,"%s\n",str_publickey);
+							gmp_fprintf(OUTPUT, "%0.64Zx\n", dst_publickey.x);
+						}
+						else if(FLAG_XPOINTONLY)	{
+							//fprintf(OUTPUT,"%s\n",str_publickey);
+							gmp_fprintf(OUTPUT, "%0.64Zx # + %Zx\n", dst_publickey.x, base_key);
+						}
+						else if(FLAG_HIDECOMMENT)	{
 							fprintf(OUTPUT,"%s\n",str_publickey);
 						}
-						
+					
 						else	{
-							gmp_fprintf(OUTPUT,"%s # + %Zd\n",str_publickey,base_key);
+							//gmp_fprintf(OUTPUT,"%s # - %Zd\n",str_publickey,base_key);
+							gmp_fprintf(OUTPUT, "%s # - %Zx\n", str_publickey, base_key);
 						}
 						}
 					break;
@@ -348,7 +375,8 @@ int main(int argc, char **argv)  {
 						}
 					
 						else	{
-							gmp_fprintf(OUTPUT,"%s # - %Zd\n",str_rmd160,base_key);
+							//gmp_fprintf(OUTPUT,"%s # - %Zd\n",str_rmd160,base_key);
+							gmp_fprintf(OUTPUT, "%s # - %Zx\n", str_rmd160, base_key);
 						}
 					}
 						if(FLAG_SUB) {
@@ -359,7 +387,8 @@ int main(int argc, char **argv)  {
 						}
 						
 						else	{
-							gmp_fprintf(OUTPUT,"%s # + %Zd\n",str_rmd160,base_key);
+							//gmp_fprintf(OUTPUT,"%s # + %Zd\n",str_rmd160,base_key);
+							gmp_fprintf(OUTPUT, "%s # - %Zx\n", str_rmd160, base_key);
 						}
 						}
 					break;
@@ -371,7 +400,8 @@ int main(int argc, char **argv)  {
 						}
 					
 						else	{
-							gmp_fprintf(OUTPUT,"%s # - %Zd\n",str_address,base_key);
+							//gmp_fprintf(OUTPUT,"%s # - %Zd\n",str_address,base_key);
+							gmp_fprintf(OUTPUT, "%s # - %Zx\n", str_address, base_key);
 						}
 					}
 						if(FLAG_SUB) {
@@ -382,18 +412,32 @@ int main(int argc, char **argv)  {
 						}
 						
 						else	{
-							gmp_fprintf(OUTPUT,"%s # + %Zd\n",str_address,base_key);
+							//gmp_fprintf(OUTPUT,"%s # + %Zd\n",str_address,base_key);
+							gmp_fprintf(OUTPUT, "%s # - %Zx\n", str_address, base_key);
 						}
 						}
 					break;
 				}
+				if (i % 10000 == 0) {
+                    double_t perc = calc_perc(i, M);
+                    printf("\r[+] Percent Complete: %0.2lf", perc);
+                    fflush(stdout);
+                }
 			}
 			
 			switch(FLAG_FORMART)	{
 				case 0: //Publickey
 				
 					generate_strpublickey(&target_publickey,FLAG_LOOK == 0,str_publickey);
-					if(FLAG_HIDECOMMENT)	{
+					if(FLAG_HIDECOMMENT && FLAG_XPOINTONLY)	{
+							//fprintf(OUTPUT,"%s\n",str_publickey);
+							gmp_fprintf(OUTPUT, "%0.64Zx\n", target_publickey.x);
+						}
+					else if(FLAG_XPOINTONLY)	{
+							//fprintf(OUTPUT,"%s\n",str_publickey);
+							gmp_fprintf(OUTPUT, "%0.64Zx # target\n", target_publickey.x);
+						}
+					else if(FLAG_HIDECOMMENT)	{
 						fprintf(OUTPUT,"%s\n",str_publickey);
 					}
 				
@@ -420,6 +464,12 @@ int main(int argc, char **argv)  {
 					}
 				break;
 			}
+			if (i = M) {
+                    double_t perc = calc_perc(i, M);
+                    //printf("\r[+] Percent Complete: %0.6lf", perc);
+					printf("\r[+] Percent Complete: Finished");
+                    fflush(stdout);
+                }
 		}
 		else	{
 			mpz_cdiv_q_ui(base_key,diff,M);
@@ -435,22 +485,42 @@ int main(int argc, char **argv)  {
 					case 0: //Publickey
 						if(FLAG_ADD) {	
 						generate_strpublickey(&dst_publickey,FLAG_LOOK == 0,str_publickey);
-						if(FLAG_HIDECOMMENT)	{
+						if(FLAG_HIDECOMMENT && FLAG_XPOINTONLY)	{
+							//fprintf(OUTPUT,"%s\n",str_publickey);
+							gmp_fprintf(OUTPUT, "%0.64Zx\n", dst_publickey.x);
+						}
+						else if(FLAG_XPOINTONLY)	{
+							//fprintf(OUTPUT,"%s\n",str_publickey);
+							gmp_fprintf(OUTPUT, "%0.64Zx # + %Zx\n", dst_publickey.x, base_key);
+						}
+						else if(FLAG_HIDECOMMENT)	{
 							fprintf(OUTPUT,"%s\n",str_publickey);
 						}
+					
 						else	{
-							gmp_fprintf(OUTPUT,"%s # - %Zd\n",str_publickey,sum_key);
+							//gmp_fprintf(OUTPUT,"%s # - %Zd\n",str_publickey,base_key);
+							gmp_fprintf(OUTPUT, "%s # - %Zx\n", str_publickey, base_key);
 						}
 						}		
 												
 						Point_Addition(&negated_publickey,&target_publickey,&dst_publickey);
 						if(FLAG_SUB) {
 						generate_strpublickey(&dst_publickey,FLAG_LOOK == 0,str_publickey);
-						if(FLAG_HIDECOMMENT)	{
+						if(FLAG_HIDECOMMENT && FLAG_XPOINTONLY)	{
+							//fprintf(OUTPUT,"%s\n",str_publickey);
+							gmp_fprintf(OUTPUT, "%0.64Zx\n", dst_publickey.x);
+						}
+						else if(FLAG_XPOINTONLY)	{
+							//fprintf(OUTPUT,"%s\n",str_publickey);
+							gmp_fprintf(OUTPUT, "%0.64Zx # + %Zx\n", dst_publickey.x, base_key);
+						}
+						else if(FLAG_HIDECOMMENT)	{
 							fprintf(OUTPUT,"%s\n",str_publickey);
 						}
+					
 						else	{
-							gmp_fprintf(OUTPUT,"%s # + %Zd\n",str_publickey,sum_key);
+							//gmp_fprintf(OUTPUT,"%s # - %Zd\n",str_publickey,base_key);
+							gmp_fprintf(OUTPUT, "%s # - %Zx\n", str_publickey, base_key);
 						}
 						}
 						
@@ -463,7 +533,8 @@ int main(int argc, char **argv)  {
 						}
 					
 						else	{
-							gmp_fprintf(OUTPUT,"%s # - %Zd\n",str_rmd160,sum_key);
+							//gmp_fprintf(OUTPUT,"%s # - %Zd\n",str_rmd160,sum_key);
+							gmp_fprintf(OUTPUT, "%s # - %Zx\n", str_rmd160, sum_key);
 						}
 					}
 						if(FLAG_SUB) {
@@ -474,7 +545,8 @@ int main(int argc, char **argv)  {
 						}
 						
 						else	{
-							gmp_fprintf(OUTPUT,"%s # + %Zd\n",str_rmd160,sum_key);
+							//gmp_fprintf(OUTPUT,"%s # + %Zd\n",str_rmd160,sum_key);
+							gmp_fprintf(OUTPUT, "%s # - %Zx\n", str_rmd160, sum_key);
 						}
 						}
 					break;
@@ -486,7 +558,8 @@ int main(int argc, char **argv)  {
 						}
 					
 						else	{
-							gmp_fprintf(OUTPUT,"%s # - %Zd\n",str_address,sum_key);
+							//gmp_fprintf(OUTPUT,"%s # - %Zd\n",str_address,sum_key);
+							gmp_fprintf(OUTPUT, "%s # - %Zx\n", str_address, sum_key);
 						}
 					}
 						if(FLAG_SUB) {
@@ -497,7 +570,8 @@ int main(int argc, char **argv)  {
 						}
 						
 						else	{
-							gmp_fprintf(OUTPUT,"%s # + %Zd\n",str_address,sum_key);
+							//gmp_fprintf(OUTPUT,"%s # + %Zd\n",str_address,sum_key);
+							gmp_fprintf(OUTPUT, "%s # - %Zx\n", str_address, sum_key);
 						}
 						}
 					break;
@@ -507,14 +581,28 @@ int main(int argc, char **argv)  {
 				mpz_set(sum_publickey.x,dst_publickey.x);
 				mpz_set(sum_publickey.y,dst_publickey.y);
 				mpz_add(sum_key,sum_key,base_key);
+				if (i % 10000 == 0) {
+                    double_t perc = calc_perc(i, M);
+                    printf("\r[+] Percent Complete: %0.2lf", perc);
+                    fflush(stdout);
+                }
 			}
 			
 			switch(FLAG_FORMART)	{
 				case 0: //Publickey
 					generate_strpublickey(&target_publickey,FLAG_LOOK == 0,str_publickey);
-					if(FLAG_HIDECOMMENT)	{
+					if(FLAG_HIDECOMMENT && FLAG_XPOINTONLY)	{
+							//fprintf(OUTPUT,"%s\n",str_publickey);
+							gmp_fprintf(OUTPUT, "%0.64Zx\n", target_publickey.x);
+						}
+					else if(FLAG_XPOINTONLY)	{
+							//fprintf(OUTPUT,"%s\n",str_publickey);
+							gmp_fprintf(OUTPUT, "%0.64Zx # target\n", target_publickey.x);
+						}
+					else if(FLAG_HIDECOMMENT)	{
 						fprintf(OUTPUT,"%s\n",str_publickey);
 					}
+				
 					else	{
 						fprintf(OUTPUT,"%s # target\n",str_publickey);
 					}
@@ -538,6 +626,12 @@ int main(int argc, char **argv)  {
 					}
 				break;
 			}
+			if (i = M) {
+                    double_t perc = calc_perc(i, M);
+                    //printf("\r[+] Percent Complete: %0.6lf", perc);
+					printf("\r[+] Percent Complete: Finished");
+                    fflush(stdout);
+                }
 		}
 		
 		mpz_clear(base_publickey.x);
@@ -553,7 +647,7 @@ int main(int argc, char **argv)  {
 	}
 	else	{
 		fprintf(stderr,"Version: %s\n",version);
-		fprintf(stderr,"[E] there are some missing parameter\n");
+		fprintf(stderr,"[E] There are some missing parameter(s)\n");
 		showhelp();
 	}
 	return 0;
@@ -572,6 +666,7 @@ void showhelp()	{
 	printf("-a\t\tAddition only to the public key.\n");
 	printf("-s\t\tSubtraction only to the public key.\n");
 	printf("NOTE:\n\t\tIf you want to add and subtract from public key, use the -s and -a flags at the same time.\n\n");
+	printf("-z\t\tX Point only. It will exclude the even (02) and odd (03) parity of the Y coord.\n");
 	printf("-x\t\tExclude comments; the + and/or - columns. You need the comments if using Random mode.\n");
 	printf("NOTE:\n\t\tThe + or - comments are telling you what to add or subtract from found key.\n\t\tIf you use -s, subtraction only, you need to add + the number to found key,\n\t\tto equal the actual key you are looking for.\n\n");
 	printf("Developed by albertobsd, mods made by WanderingPhilosopher\n\n");
@@ -587,12 +682,15 @@ void set_bit(char *param)	{
 		mpz_pow_ui(MPZAUX,TWO,bitrange);
 		mpz_sub_ui(MPZAUX,MPZAUX,1);
 		mpz_set(max_range,MPZAUX);
+		printf("[+] KeySubtractor\n");
+		printf("[+] Version %s\n",version);
+		fprintf(stderr, "[+] Keys to Generate: %d\n", N);
 		gmp_fprintf(stderr,"[+] Min range: %Zx\n",min_range);
 		gmp_fprintf(stderr,"[+] Max range: %Zx\n",max_range);
 		mpz_clear(MPZAUX);
 	}
 	else	{
-		fprintf(stderr,"[E] invalid bit param: %s\n",param);
+		fprintf(stderr,"[E] Invalid bit paramaters: %s\n",param);
 		exit(0);
 	}
 }
@@ -673,20 +771,30 @@ void set_range(char *param)	{
 	if(tk.n == 2)	{
 		mpz_init_set_str(min_range,nextToken(&tk),16);
 		mpz_init_set_str(max_range,nextToken(&tk),16);
+		printf("[+] Version %s\n",version);
+		printf("[+] KeySubtractor\n");
+		fprintf(stderr, "[+] Keys to Generate: %d\n", N);
+		gmp_fprintf(stderr, "[+] Min range: %Zx\n", min_range);
+        gmp_fprintf(stderr, "[+] Max range: %Zx\n", max_range);
 	}
 	else	{
 		fprintf(stderr,"%i\n",tk.n);
-		fprintf(stderr,"[E] Invalid range expected format A:B\n");
+		fprintf(stderr,"[E] Invalid range. Expected format A:B\n");
 		exit(0);
 	}
 	freetokenizer(&tk);
 	free(dest);
 }
 
+double_t calc_perc(uint64_t x, uint64_t max)
+{
+    return (double_t)(((double_t)x) / ((double_t)max) * 100.0 /*+ 0.5*/);
+}
+
 void set_format(char *param)	{
 	int index = indexOf(param,formats,3);
 	if(index == -1)	{
-		fprintf(stderr,"[E] Unknow format: %s\n",param);
+		fprintf(stderr,"[E] Unknown format: %s\n",param);
 	}
 	else	{
 		FLAG_FORMART = index;
@@ -696,7 +804,7 @@ void set_format(char *param)	{
 void set_look(char *param)	{
 	int index = indexOf(param,looks,2);
 	if(index == -1)	{
-		fprintf(stderr,"[E] Unknow look: %s\n",param);
+		fprintf(stderr,"[E] Unknown look: %s\n",param);
 	}
 	else	{
 		FLAG_LOOK = index;

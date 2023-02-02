@@ -3,6 +3,12 @@ Bitcoin and Altcoins Publickey subtractor
 
 This is a fork of  https://github.com/albertobsd/keysubtracter  but for Windows.
 
+Version 2.
+Some added features; now you can either add or subtract ONLY from the public key, or add and subtract at the same time (as it was before.)
+
+To use, download zip folder, unzip, and setup your batch file how you want it.
+NOTE: must keep libgmp-10.dll in same folder as the .exe file, unless you have libgmp-10.dll loaded on your PC and set in the Path/environments.
+
 Generate multiple but different "copies" of a publickey, Actually Added and substracted publickeys.
 
 Post: https://bitcointalk.org/index.php?topic=5360656.0

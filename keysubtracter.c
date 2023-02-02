@@ -19,9 +19,7 @@ email: alberto.bsd@gmail.com
 #include "base58/libbase58.h"
 #include "rmd160/rmd160.h"
 #include "sha256/sha256.h"
-#ifdef WIN32
-	#include <windows.h>
-#endif
+
 
 const char *version = "0.1.20210918";
 const char *EC_constant_N = "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364141";
@@ -32,6 +30,7 @@ const char *EC_constant_Gy = "483ada7726a3c4655da4fbfc0e1108a8fd17b448a68554199c
 
 const char *formats[3] = {"publickey","rmd160","address"};
 const char *looks[2] = {"compress","uncompress"};
+//const char *op[2] = {"add","sub"};
 
 void showhelp();
 void set_format(char *param);
@@ -58,14 +57,14 @@ int FLAG_PUBLIC = 0;
 int FLAG_FORMART = 0;
 int FLAG_HIDECOMMENT = 0;
 int FLAG_LOOK = 0;
+int FLAG_ADD = 0;
+int FLAG_SUB = 0;
 int FLAG_MODE = 0;
 int FLAG_N;
 uint64_t N = 0,M;
 
 mpz_t min_range,max_range,diff,TWO,base_key,sum_key,dst_key;
 gmp_randstate_t state;
-
-
 
 void Point_Doubling(struct Point *P, struct Point *R)	{
 	mpz_t slope, temp;
@@ -200,6 +199,7 @@ void init_doublingG(struct Point *P)	{
 		i++;
 	}
 }
+
 int main(int argc, char **argv)  {
 	FILE *OUTPUT;
 	char c;
@@ -216,10 +216,16 @@ int main(int argc, char **argv)  {
 	mpz_init_set_ui(TWO,2);
 	mpz_init(target_publickey.x);
 	mpz_init_set_ui(target_publickey.y,0);
-	while ((c = getopt(argc, argv, "hvxRb:n:o:p:r:f:l:")) != -1) {
+	while ((c = getopt(argc, argv, "hvasxRb:n:o:p:r:f:l:")) != -1) {
 		switch(c) {
 			case 'x':
 				FLAG_HIDECOMMENT = 1;
+			break;
+			case 'a':
+				FLAG_ADD = 1;
+			break;
+			case 's':
+				FLAG_SUB = 1;
 			break;
 			case 'h':
 				showhelp();
@@ -258,9 +264,11 @@ int main(int argc, char **argv)  {
 			case 'l':
 				set_look((char *)optarg);
 			break;
+			
 			case 'f':
 				set_format((char *)optarg);
 			break;
+			
 		}
 	}
 	if((FLAG_BIT || FLAG_RANGE) && FLAG_PUBLIC && FLAG_N)	{
@@ -277,7 +285,16 @@ int main(int argc, char **argv)  {
 		if(N % 2 == 1)	{
 			N++;
 		}
-		M = N /2;
+		//M = N /2;
+		if(FLAG_ADD) {
+			M = N;
+		}
+		if(FLAG_SUB) {
+			M = N;
+		}
+		else {
+			M = N /2;
+		}
 		mpz_sub(diff,max_range,min_range);
 		mpz_init(base_publickey.x);
 		mpz_init(base_publickey.y);
@@ -301,55 +318,72 @@ int main(int argc, char **argv)  {
 				
 				switch(FLAG_FORMART)	{
 					case 0: //Publickey
+					if(FLAG_ADD) {
 						generate_strpublickey(&dst_publickey,FLAG_LOOK == 0,str_publickey);
 						if(FLAG_HIDECOMMENT)	{
 							fprintf(OUTPUT,"%s\n",str_publickey);
 						}
+					
 						else	{
 							gmp_fprintf(OUTPUT,"%s # - %Zd\n",str_publickey,base_key);
 						}
-						
+					}
+						if(FLAG_SUB) {
 						Point_Addition(&negated_publickey,&target_publickey,&dst_publickey);
 						generate_strpublickey(&dst_publickey,FLAG_LOOK == 0,str_publickey);
 						if(FLAG_HIDECOMMENT)	{
 							fprintf(OUTPUT,"%s\n",str_publickey);
 						}
+						
 						else	{
 							gmp_fprintf(OUTPUT,"%s # + %Zd\n",str_publickey,base_key);
 						}
+						}
 					break;
 					case 1: //rmd160
+					if(FLAG_ADD) {
 						generate_strrmd160(&dst_publickey,FLAG_LOOK == 0,str_rmd160);
 						if(FLAG_HIDECOMMENT)	{
 							fprintf(OUTPUT,"%s\n",str_rmd160);
 						}
+					
 						else	{
 							gmp_fprintf(OUTPUT,"%s # - %Zd\n",str_rmd160,base_key);
 						}
+					}
+						if(FLAG_SUB) {
 						Point_Addition(&negated_publickey,&target_publickey,&dst_publickey);
 						generate_strrmd160(&dst_publickey,FLAG_LOOK == 0,str_rmd160);
 						if(FLAG_HIDECOMMENT)	{
 							fprintf(OUTPUT,"%s\n",str_rmd160);
 						}
+						
 						else	{
 							gmp_fprintf(OUTPUT,"%s # + %Zd\n",str_rmd160,base_key);
 						}
+						}
 					break;
 					case 2:	//address
+					if(FLAG_ADD) {
 						generate_straddress(&dst_publickey,FLAG_LOOK == 0,str_address);
 						if(FLAG_HIDECOMMENT)	{
 							fprintf(OUTPUT,"%s\n",str_address);
 						}
+					
 						else	{
 							gmp_fprintf(OUTPUT,"%s # - %Zd\n",str_address,base_key);
 						}
+					}
+						if(FLAG_SUB) {
 						Point_Addition(&negated_publickey,&target_publickey,&dst_publickey);
 						generate_straddress(&dst_publickey,FLAG_LOOK == 0,str_address);
 						if(FLAG_HIDECOMMENT)	{
 							fprintf(OUTPUT,"%s\n",str_address);
 						}
+						
 						else	{
 							gmp_fprintf(OUTPUT,"%s # + %Zd\n",str_address,base_key);
+						}
 						}
 					break;
 				}
@@ -357,10 +391,12 @@ int main(int argc, char **argv)  {
 			
 			switch(FLAG_FORMART)	{
 				case 0: //Publickey
+				
 					generate_strpublickey(&target_publickey,FLAG_LOOK == 0,str_publickey);
 					if(FLAG_HIDECOMMENT)	{
 						fprintf(OUTPUT,"%s\n",str_publickey);
 					}
+				
 					else	{
 						fprintf(OUTPUT,"%s # target\n",str_publickey);
 					}
@@ -397,6 +433,7 @@ int main(int argc, char **argv)  {
 				
 				switch(FLAG_FORMART)	{
 					case 0: //Publickey
+						if(FLAG_ADD) {	
 						generate_strpublickey(&dst_publickey,FLAG_LOOK == 0,str_publickey);
 						if(FLAG_HIDECOMMENT)	{
 							fprintf(OUTPUT,"%s\n",str_publickey);
@@ -404,7 +441,10 @@ int main(int argc, char **argv)  {
 						else	{
 							gmp_fprintf(OUTPUT,"%s # - %Zd\n",str_publickey,sum_key);
 						}
+						}		
+												
 						Point_Addition(&negated_publickey,&target_publickey,&dst_publickey);
+						if(FLAG_SUB) {
 						generate_strpublickey(&dst_publickey,FLAG_LOOK == 0,str_publickey);
 						if(FLAG_HIDECOMMENT)	{
 							fprintf(OUTPUT,"%s\n",str_publickey);
@@ -412,39 +452,53 @@ int main(int argc, char **argv)  {
 						else	{
 							gmp_fprintf(OUTPUT,"%s # + %Zd\n",str_publickey,sum_key);
 						}
+						}
+						
 					break;
 					case 1: //rmd160
+					if(FLAG_ADD) {
 						generate_strrmd160(&dst_publickey,FLAG_LOOK == 0,str_rmd160);
 						if(FLAG_HIDECOMMENT)	{
 							fprintf(OUTPUT,"%s\n",str_rmd160);
 						}
+					
 						else	{
 							gmp_fprintf(OUTPUT,"%s # - %Zd\n",str_rmd160,sum_key);
 						}
+					}
+						if(FLAG_SUB) {
 						Point_Addition(&negated_publickey,&target_publickey,&dst_publickey);
 						generate_strrmd160(&dst_publickey,FLAG_LOOK == 0,str_rmd160);
 						if(FLAG_HIDECOMMENT)	{
 							fprintf(OUTPUT,"%s\n",str_rmd160);
 						}
+						
 						else	{
 							gmp_fprintf(OUTPUT,"%s # + %Zd\n",str_rmd160,sum_key);
 						}
+						}
 					break;
 					case 2:	//address
+					if(FLAG_ADD) {
 						generate_straddress(&dst_publickey,FLAG_LOOK == 0,str_address);
 						if(FLAG_HIDECOMMENT)	{
 							fprintf(OUTPUT,"%s\n",str_address);
 						}
+					
 						else	{
 							gmp_fprintf(OUTPUT,"%s # - %Zd\n",str_address,sum_key);
 						}
+					}
+						if(FLAG_SUB) {
 						Point_Addition(&negated_publickey,&target_publickey,&dst_publickey);
 						generate_straddress(&dst_publickey,FLAG_LOOK == 0,str_address);
 						if(FLAG_HIDECOMMENT)	{
 							fprintf(OUTPUT,"%s\n",str_address);
 						}
+						
 						else	{
 							gmp_fprintf(OUTPUT,"%s # + %Zd\n",str_address,sum_key);
+						}
 						}
 					break;
 				}
@@ -506,17 +560,21 @@ int main(int argc, char **argv)  {
 }
 
 void showhelp()	{
-	printf("\nUsage:\n-h\t\tshow this help\n");
-	printf("-b bits\t\tFor some puzzles you only need a bit range\n");
+	printf("\nUsage:\n-h\t\tShow this help screen.\n");
+	printf("-b bits\t\tFor the 32 BTC challenge, you can just enter a bit range.\n");
 	printf("-f format\tOutput format <publickey, rmd160, address>. Default: publickey\n");
-	printf("-l look\t\tOutput <compress, uncompress>. Default: compress\n");
-	printf("-n number\tNumber of publikeys to be geneted, this numbe will be even\n");
-	printf("-o file\t\tOutput file, if you omit this option the out will go to the standar output\n");
-	printf("-p key\t\tPublickey to be substracted compress or uncompress\n");
-	printf("-r A:B\t\trange A to B\n");
-	printf("-R\t\tSet the publickey substraction Random instead of secuential\n");
-	printf("-x\t\tExclude comment\n\n");
-	printf("Developed by albertobsd\n\n");
+	printf("-l look\t\tOutput <compressed, uncompressed>. Default: compress\n");
+	printf("-n number\tNumber of public keys to generate. This number needs to be even.\n");
+	printf("-o file\t\tOutput file. If you omit this option, results will be printed on screen.\n");
+	printf("-p key\t\tPublickey to be added/subtracted; can be compressed or uncompressed.\n");
+	printf("-r A:B\t\tRange A to B; ex: -r 2000000000:3000000000\n");
+	printf("-R\t\tRandom addition/subtraction publickey instead of sequential.\n");
+	printf("-a\t\tAddition only to the public key.\n");
+	printf("-s\t\tSubtraction only to the public key.\n");
+	printf("NOTE:\n\t\tIf you want to add and subtract from public key, use the -s and -a flags at the same time.\n\n");
+	printf("-x\t\tExclude comments; the + and/or - columns. You need the comments if using Random mode.\n");
+	printf("NOTE:\n\t\tThe + or - comments are telling you what to add or subtract from found key.\n\t\tIf you use -s, subtraction only, you need to add + the number to found key,\n\t\tto equal the actual key you are looking for.\n\n");
+	printf("Developed by albertobsd, mods made by WanderingPhilosopher\n\n");
 }
 
 void set_bit(char *param)	{
@@ -644,6 +702,8 @@ void set_look(char *param)	{
 		FLAG_LOOK = index;
 	}
 }
+
+
 
 
 void generate_strpublickey(struct Point *publickey,bool compress,char *dst)	{

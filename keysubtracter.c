@@ -21,7 +21,7 @@ email: alberto.bsd@gmail.com
 #include "sha256/sha256.h"
 
 
-const char *version = "v2.2";
+const char *version = "v2.3";
 const char *EC_constant_N = "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364141";
 const char *EC_constant_P = "fffffffffffffffffffffffffffffffffffffffffffffffffffffffefffffc2f";
 const char *EC_constant_Gx = "79be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798";
@@ -376,8 +376,10 @@ int main(int argc, char **argv)  {
 					
 						else	{
 							//gmp_fprintf(OUTPUT,"%s # - %Zd\n",str_rmd160,base_key);
+							
 							gmp_fprintf(OUTPUT, "%s # - %Zx\n", str_rmd160, base_key);
 						}
+						
 					}
 						if(FLAG_SUB) {
 						Point_Addition(&negated_publickey,&target_publickey,&dst_publickey);
@@ -388,7 +390,9 @@ int main(int argc, char **argv)  {
 						
 						else	{
 							//gmp_fprintf(OUTPUT,"%s # + %Zd\n",str_rmd160,base_key);
+							if(1000<i && i<10000){
 							gmp_fprintf(OUTPUT, "%s # + %Zx\n", str_rmd160, base_key);
+						}
 						}
 						}
 					break;
@@ -473,6 +477,8 @@ int main(int argc, char **argv)  {
 		}
 		else	{
 			mpz_cdiv_q_ui(base_key,diff,M);
+			//mpz_cdiv_q_ui(base_key,min_range,1);
+			
 			Scalar_Multiplication(G,&base_publickey,base_key);
 			mpz_set(sum_publickey.x,base_publickey.x);
 			mpz_set(sum_publickey.y,base_publickey.y);
@@ -491,7 +497,7 @@ int main(int argc, char **argv)  {
 						}
 						else if(FLAG_XPOINTONLY)	{
 							//fprintf(OUTPUT,"%s\n",str_publickey);
-							gmp_fprintf(OUTPUT, "%0.64Zx # - %Zx\n", dst_publickey.x, base_key);
+							gmp_fprintf(OUTPUT, "%0.64Zx # - %Zx\n", dst_publickey.x, sum_key);
 						}
 						else if(FLAG_HIDECOMMENT)	{
 							fprintf(OUTPUT,"%s\n",str_publickey);
@@ -499,20 +505,21 @@ int main(int argc, char **argv)  {
 					
 						else	{
 							//gmp_fprintf(OUTPUT,"%s # - %Zd\n",str_publickey,base_key);
-							gmp_fprintf(OUTPUT, "%s # - %Zx\n", str_publickey, base_key);
+							gmp_fprintf(OUTPUT, "%s # - %Zx\n", str_publickey, sum_key);
 						}
 						}		
-												
-						Point_Addition(&negated_publickey,&target_publickey,&dst_publickey);
+						
 						if(FLAG_SUB) {
+						Point_Addition(&negated_publickey,&target_publickey,&dst_publickey);
 						generate_strpublickey(&dst_publickey,FLAG_LOOK == 0,str_publickey);
+												
 						if(FLAG_HIDECOMMENT && FLAG_XPOINTONLY)	{
 							//fprintf(OUTPUT,"%s\n",str_publickey);
 							gmp_fprintf(OUTPUT, "%0.64Zx\n", dst_publickey.x);
 						}
 						else if(FLAG_XPOINTONLY)	{
 							//fprintf(OUTPUT,"%s\n",str_publickey);
-							gmp_fprintf(OUTPUT, "%0.64Zx # + %Zx\n", dst_publickey.x, base_key);
+							gmp_fprintf(OUTPUT, "%0.64Zx # + %Zx\n", dst_publickey.x, sum_key);
 						}
 						else if(FLAG_HIDECOMMENT)	{
 							fprintf(OUTPUT,"%s\n",str_publickey);
@@ -520,7 +527,7 @@ int main(int argc, char **argv)  {
 					
 						else	{
 							//gmp_fprintf(OUTPUT,"%s # - %Zd\n",str_publickey,base_key);
-							gmp_fprintf(OUTPUT, "%s # + %Zx\n", str_publickey, base_key);
+							gmp_fprintf(OUTPUT, "%s # + %Zx\n", str_publickey, sum_key);
 						}
 						}
 						

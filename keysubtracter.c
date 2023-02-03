@@ -335,7 +335,7 @@ int main(int argc, char **argv)  {
 						}
 						else if(FLAG_XPOINTONLY)	{
 							//fprintf(OUTPUT,"%s\n",str_publickey);
-							gmp_fprintf(OUTPUT, "%0.64Zx # + %Zx\n", dst_publickey.x, base_key);
+							gmp_fprintf(OUTPUT, "%0.64Zx # - %Zx\n", dst_publickey.x, base_key);
 						}
 						else if(FLAG_HIDECOMMENT)	{
 							fprintf(OUTPUT,"%s\n",str_publickey);
@@ -363,7 +363,7 @@ int main(int argc, char **argv)  {
 					
 						else	{
 							//gmp_fprintf(OUTPUT,"%s # - %Zd\n",str_publickey,base_key);
-							gmp_fprintf(OUTPUT, "%s # - %Zx\n", str_publickey, base_key);
+							gmp_fprintf(OUTPUT, "%s # + %Zx\n", str_publickey, base_key);
 						}
 						}
 					break;
@@ -388,7 +388,7 @@ int main(int argc, char **argv)  {
 						
 						else	{
 							//gmp_fprintf(OUTPUT,"%s # + %Zd\n",str_rmd160,base_key);
-							gmp_fprintf(OUTPUT, "%s # - %Zx\n", str_rmd160, base_key);
+							gmp_fprintf(OUTPUT, "%s # + %Zx\n", str_rmd160, base_key);
 						}
 						}
 					break;
@@ -413,7 +413,7 @@ int main(int argc, char **argv)  {
 						
 						else	{
 							//gmp_fprintf(OUTPUT,"%s # + %Zd\n",str_address,base_key);
-							gmp_fprintf(OUTPUT, "%s # - %Zx\n", str_address, base_key);
+							gmp_fprintf(OUTPUT, "%s # + %Zx\n", str_address, base_key);
 						}
 						}
 					break;
@@ -491,7 +491,7 @@ int main(int argc, char **argv)  {
 						}
 						else if(FLAG_XPOINTONLY)	{
 							//fprintf(OUTPUT,"%s\n",str_publickey);
-							gmp_fprintf(OUTPUT, "%0.64Zx # + %Zx\n", dst_publickey.x, base_key);
+							gmp_fprintf(OUTPUT, "%0.64Zx # - %Zx\n", dst_publickey.x, base_key);
 						}
 						else if(FLAG_HIDECOMMENT)	{
 							fprintf(OUTPUT,"%s\n",str_publickey);
@@ -520,7 +520,7 @@ int main(int argc, char **argv)  {
 					
 						else	{
 							//gmp_fprintf(OUTPUT,"%s # - %Zd\n",str_publickey,base_key);
-							gmp_fprintf(OUTPUT, "%s # - %Zx\n", str_publickey, base_key);
+							gmp_fprintf(OUTPUT, "%s # + %Zx\n", str_publickey, base_key);
 						}
 						}
 						
@@ -546,7 +546,7 @@ int main(int argc, char **argv)  {
 						
 						else	{
 							//gmp_fprintf(OUTPUT,"%s # + %Zd\n",str_rmd160,sum_key);
-							gmp_fprintf(OUTPUT, "%s # - %Zx\n", str_rmd160, sum_key);
+							gmp_fprintf(OUTPUT, "%s # + %Zx\n", str_rmd160, sum_key);
 						}
 						}
 					break;
@@ -571,7 +571,7 @@ int main(int argc, char **argv)  {
 						
 						else	{
 							//gmp_fprintf(OUTPUT,"%s # + %Zd\n",str_address,sum_key);
-							gmp_fprintf(OUTPUT, "%s # - %Zx\n", str_address, sum_key);
+							gmp_fprintf(OUTPUT, "%s # + %Zx\n", str_address, sum_key);
 						}
 						}
 					break;
